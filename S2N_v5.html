@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2N App: Decide. Lock In. Execute.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f8fafc; /* slate-50 */
+        }
+
+        /* --- Gamified / Duolingo Style UI --- */
+
+        .btn-primary {
+            background-image: linear-gradient(to right, #4f46e5, #7c3aed);
+            color: white;
+            border-radius: 0.75rem;
+            padding: 0.875rem 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease-in-out;
+            border-bottom: 4px solid #4338ca; /* A darker shade for depth */
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:active {
+            transform: translateY(1px);
+            border-bottom-width: 2px;
+        }
+        .btn-primary.disabled {
+            background: #e5e7eb; /* gray-200 */
+            color: #9ca3af; /* gray-400 */
+            cursor: not-allowed;
+            box-shadow: none;
+            border-bottom: 4px solid #d1d5db;
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background-color: #eef2ff;
+            color: #4f46e5;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: #e0e7ff;
+            transform: translateY(-1px);
+        }
+
+        .main-card {
+            background-color: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+        }
+
+        .task-input-container {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .task-input-container:focus-within {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+        .task-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1.125rem;
+        }
+        
+        /* Custom Checkbox Styling */
+        .wizard-checkbox-label {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .wizard-checkbox-label:hover {
+            border-color: #c7d2fe;
+            background-color: #f8fafc;
+        }
+        .wizard-checkbox-label.checked {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+        .wizard-checkbox {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            height: 1.75rem;
+            width: 1.75rem;
+            min-width: 1.75rem;
+            border-radius: 0.5rem;
+            border: 2px solid #9ca3af;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+            margin-right: 1rem;
+        }
+        .wizard-checkbox:checked {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .wizard-checkbox:checked::after {
+            content: '✔';
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .progress-bar-bg {
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+            height: 1rem;
+        }
+        .progress-bar-fg {
+            background-image: linear-gradient(to right, #22c55e, #10b981);
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        /* Smooth transitions for screens */
+        .screen {
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+        }
+        .screen.hidden {
+            opacity: 0;
+            transform: scale(0.98);
+            pointer-events: none;
+            position: absolute;
+            width: 100%;
+        }
+        
+        /* North Star Section */
+        .north-star-section {
+            background: linear-gradient(180deg, #f0f2ff, #f8fafc);
+            border: 1px solid #e0e7ff;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .north-star-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .north-star-btn {
+            background-color: rgba(255,255,255,0.7);
+            border-radius: 9999px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .north-star-btn:hover {
+            background-color: white;
+            transform: scale(1.1);
+        }
+        .north-star-input {
+            width: 100%;
+            border: 2px solid #c7d2fe;
+            border-radius: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background-color: white;
+        }
+        
+        /* Drag and Drop Styling */
+        .draggable-signal {
+            cursor: grab;
+        }
+        .dragging {
+            opacity: 0.5;
+            background: #eef2ff;
+        }
+        
+        /* Duration Chip */
+        .duration-chip {
+            background-color: #e0e7ff;
+            color: #4338ca;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            cursor: pointer;
+        }
+        .duration-input {
+            width: 60px;
+            text-align: center;
+            border: 1px solid #c7d2fe;
+            border-radius: 9999px;
+        }
+
+    </style>
+</head>
+<body class="text-gray-800 flex flex-col min-h-screen p-4">
+
+    <header id="app-header" class="w-full max-w-4xl mx-auto hidden">
+        <div id="north-star-section" class="north-star-section text-center">
+            <div class="absolute top-[-20px] left-1/2 -translate-x-1/2 bg-white p-2 rounded-full shadow-md">
+                <svg id="north-star-icon" class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2L9 9l-7 2 7 2 2 7 2-7 7-2-7-2L12 2z"></path></svg>
+            </div>
+            <div id="north-star-content" class="mt-4">
+                <!-- Content will be rendered by JS -->
+            </div>
+            <div id="north-star-controls" class="north-star-controls">
+                <!-- Controls will be rendered by JS -->
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center">
+        <div id="app-container" class="w-full max-w-4xl mx-auto relative">
+            
+            <!-- SCREEN 0: SET NORTH STAR -->
+            <div id="screen0" class="screen w-full hidden">
+                <div class="main-card max-w-2xl mx-auto text-center">
+                    <h1 class="text-4xl font-extrabold text-gray-900">What is your North Star?</h1>
+                    <p class="mt-4 text-lg text-gray-500">Define your single most important goal. This will be your guide.</p>
+                    <div class="text-left space-y-4 mt-8">
+                        <div>
+                            <label for="initial-goal-header" class="font-semibold text-gray-700">Goal Title</label>
+                            <input type="text" id="initial-goal-header" class="w-full p-3 border-2 border-gray-300 rounded-lg mt-1 focus:ring-indigo-500 focus:border-indigo-500" value="Goal of the Week">
+                        </div>
+                        <div>
+                            <label for="initial-goal-content" class="font-semibold text-gray-700">Your Goal</label>
+                            <textarea id="initial-goal-content" rows="3" class="w-full p-3 border-2 border-gray-300 rounded-lg mt-1 focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., Launch the new feature and get 100 sign-ups."></textarea>
+                        </div>
+                    </div>
+                    <button id="set-north-star-btn" class="mt-8 btn-primary">Set My North Star</button>
+                </div>
+            </div>
+
+            <!-- SCREEN 1: TASK DUMP -->
+            <div id="screen1" class="screen w-full text-center hidden">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900">What's on your mind today?</h1>
+                <p class="mt-4 text-lg text-gray-500">Let's capture everything first. No judgment.</p>
+                <div id="task-list" class="mt-10 max-w-2xl mx-auto text-left space-y-3">
+                    <!-- Task items will be injected here -->
+                </div>
+                <button id="sort-day-btn" class="mt-12 btn-primary disabled">
+                    Sort My Day
+                </button>
+            </div>
+
+            <!-- SCREEN 2: FILTER WIZARD -->
+            <div id="screen2" class="screen w-full hidden">
+                <p id="progress-banner" class="text-center text-gray-500 font-semibold mb-4">TASK 1 / 7</p>
+                <div class="main-card max-w-2xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-center mb-6 text-gray-900">Is this truly important?</h2>
+                    <p id="current-task-text" class="text-center text-2xl font-bold text-indigo-700 mb-10 p-4 bg-indigo-50 rounded-xl">Write investor pitch deck</p>
+                    
+                    <div class="space-y-4 text-lg">
+                        <!-- Checkbox items will be injected here -->
+                    </div>
+                    
+                    <p class="text-center text-gray-500 mt-8 font-semibold">Be ruthless. Check 3 or more to mark as Signal.</p>
+
+                    <div class="text-center mt-6">
+                        <button id="categorize-btn" class="w-full md:w-auto">
+                            <!-- Button text and style will be set by JS -->
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCREEN 3: YOUR DAY -->
+            <div id="screen3" class="screen w-full hidden">
+                <div class="text-center mb-10">
+                    <h1 id="screen3-header" class="text-4xl md:text-5xl font-extrabold text-gray-900">Your Day is Sorted.</h1>
+                    <p id="screen3-subheader" class="mt-4 text-lg text-gray-500">Time to lock in and execute.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                    <!-- Signal Column -->
+                    <div class="main-card">
+                        <h2 class="text-2xl font-bold text-green-600 mb-4">SIGNAL</h2>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="progress-bar-bg w-full"><div id="signal-progress-bar" class="progress-bar-fg" style="width: 0%;"></div></div>
+                            <span id="signal-percentage" class="font-bold text-gray-600">0%</span>
+                        </div>
+                        <div id="signal-list" class="space-y-3"></div>
+                        <p id="signal-warning" class="text-yellow-600 font-semibold mt-4 hidden">⚠️ More than 5 signals? Try to narrow your focus!</p>
+                    </div>
+
+                    <!-- Noise Column -->
+                    <div class="main-card">
+                        <h2 class="text-2xl font-bold text-red-600 mb-4">NOISE</h2>
+                        <div id="noise-list" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-12 space-y-6">
+                    <div id="integration-buttons" class="hidden space-x-4">
+                         <button id="add-to-calendar-btn" class="btn-secondary">Add to Calendar</button>
+                         <button id="add-to-notion-btn" class="btn-secondary">Add to Notion</button>
+                    </div>
+                    <button id="finish-day-btn" class="btn-primary hidden">Finish Day & Recap</button>
+                    <button id="lock-signal-btn" class="btn-primary hidden">
+                        🔒 Lock My Signal
+                    </button>
+                </div>
+            </div>
+
+            <!-- SCREEN 4: END OF DAY RECAP -->
+            <div id="screen4" class="screen w-full hidden">
+                <div class="main-card max-w-2xl mx-auto text-center">
+                    <h1 class="text-4xl font-extrabold text-gray-900">How did your day go?</h1>
+                    <p class="mt-2 text-lg text-gray-500">Let's reflect and improve.</p>
+                    <div class="text-left my-8 space-y-6">
+                        <div class="flex justify-between items-center bg-amber-50 border border-amber-200 rounded-lg p-4">
+                            <p class="text-lg font-semibold text-amber-800">🔥 Signal Streak:</p>
+                            <p id="recap-streak-count" class="text-3xl font-bold text-amber-600">0 Days</p>
+                        </div>
+                        <div>
+                            <p class="text-lg font-semibold text-gray-700">✅ Signal Tasks Completed:</p>
+                            <p id="recap-signal-completed" class="text-3xl font-bold text-green-600">0/0</p>
+                        </div>
+                        <div>
+                            <p class="text-lg font-semibold text-gray-700">❌ Noise Tasks You Got Pulled Into:</p>
+                            <p id="recap-noise-count" class="text-3xl font-bold text-red-600">0</p>
+                            <div id="recap-noise-list" class="mt-2 text-gray-600 space-y-2"></div>
+                        </div>
+                        <div>
+                            <p class="text-lg font-semibold text-gray-700">🔁 Would you change your signals if you had the day again?</p>
+                            <div class="flex justify-center space-x-4 mt-2">
+                                 <label class="flex items-center space-x-2 p-3 rounded-lg border-2 border-gray-200 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 cursor-pointer flex-1 justify-center">
+                                    <input type="radio" name="change-signals" value="yes" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                    <span>Yes</span>
+                                </label>
+                                 <label class="flex items-center space-x-2 p-3 rounded-lg border-2 border-gray-200 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 cursor-pointer flex-1 justify-center">
+                                    <input type="radio" name="change-signals" value="no" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="distraction-recap" class="text-lg font-semibold text-gray-700">What distracted you the most today?</label>
+                            <textarea id="distraction-recap" rows="3" class="mt-2 w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., Social media, unplanned meetings..."></textarea>
+                        </div>
+                    </div>
+                    <button id="start-new-day-btn" class="btn-primary">
+                        Start a Fresh Day
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Modals -->
+            <div id="notion-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden p-4">
+                <div class="main-card text-center max-w-sm">
+                    <h3 class="text-2xl font-bold mb-4">Notion Integration</h3>
+                    <p class="text-gray-600 mb-6">Full Notion integration requires API setup. For now, you can manually copy your tasks.</p>
+                    <button class="btn-primary close-modal-btn">Got it</button>
+                </div>
+            </div>
+            <div id="zero-signal-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden p-4">
+                <div class="main-card text-center max-w-sm">
+                    <h3 class="text-2xl font-bold mb-4">No Signal Found!</h3>
+                    <p class="text-gray-600 mb-6">None of your tasks were marked as Signal. True priorities directly advance your North Star goal. Let's try again.</p>
+                    <button id="rethink-tasks-btn" class="btn-primary">Rethink My Tasks</button>
+                </div>
+            </div>
+            <div id="delegate-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden p-4">
+                <div class="main-card text-center max-w-sm">
+                    <h3 class="text-2xl font-bold mb-4">Schedule or Delegate</h3>
+                    <p class="text-gray-600 mb-6">This feature is coming soon! For now, consider if this task can be moved to another day or given to someone else.</p>
+                    <button class="btn-primary close-modal-btn">Okay</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    
+    <footer class="w-full text-center p-4">
+        <p class="text-sm text-gray-400">Designed and developed by Armen</p>
+    </footer>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- STATE MANAGEMENT ---
+        let tasks = [];
+        let signalTasks = [];
+        let noiseTasks = [];
+        let currentTaskIndex = 0;
+        let isLocked = false;
+        let northStarState = {
+            header: "Goal of the Week",
+            goal: "",
+            isLocked: false,
+            isEditing: false
+        };
+        let streakData = {
+            count: 0,
+            lastCompletedDate: null
+        };
+        
+        const wizardQuestions = [
+            "Does this move you toward your #1 goal?",
+            "Would today still be a win if this was all you finished?",
+            "Does this require your brain, creativity, or leadership?",
+            "Will there be a real cost if this isn’t done today?"
+        ];
+
+        // --- DOM ELEMENTS ---
+        const appHeader = document.getElementById('app-header');
+        const northStarContent = document.getElementById('north-star-content');
+        const northStarControls = document.getElementById('north-star-controls');
+        const appContainer = document.getElementById('app-container');
+        const screens = {
+            screen0: document.getElementById('screen0'),
+            screen1: document.getElementById('screen1'),
+            screen2: document.getElementById('screen2'),
+            screen3: document.getElementById('screen3'),
+            screen4: document.getElementById('screen4'),
+        };
+        const setNorthStarBtn = document.getElementById('set-north-star-btn');
+        const taskListContainer = document.getElementById('task-list');
+        const sortDayBtn = document.getElementById('sort-day-btn');
+        const progressBanner = document.getElementById('progress-banner');
+        const wizardCard = screens.screen2.querySelector('.main-card');
+        const currentTaskText = document.getElementById('current-task-text');
+        const categorizeBtn = document.getElementById('categorize-btn');
+        const screen3Header = document.getElementById('screen3-header');
+        const screen3Subheader = document.getElementById('screen3-subheader');
+        const signalListContainer = document.getElementById('signal-list');
+        const noiseListContainer = document.getElementById('noise-list');
+        const signalProgressBar = document.getElementById('signal-progress-bar');
+        const signalPercentage = document.getElementById('signal-percentage');
+        const signalWarning = document.getElementById('signal-warning');
+        const lockSignalBtn = document.getElementById('lock-signal-btn');
+        const integrationButtons = document.getElementById('integration-buttons');
+        const addToCalendarBtn = document.getElementById('add-to-calendar-btn');
+        const addToNotionBtn = document.getElementById('add-to-notion-btn');
+        const finishDayBtn = document.getElementById('finish-day-btn');
+        const recapStreakCount = document.getElementById('recap-streak-count');
+        const recapSignalCompleted = document.getElementById('recap-signal-completed');
+        const recapNoiseCount = document.getElementById('recap-noise-count');
+        const recapNoiseListContainer = document.getElementById('recap-noise-list');
+        const startNewDayBtn = document.getElementById('start-new-day-btn');
+        const notionModal = document.getElementById('notion-modal');
+        const zeroSignalModal = document.getElementById('zero-signal-modal');
+        const delegateModal = document.getElementById('delegate-modal');
+        const rethinkTasksBtn = document.getElementById('rethink-tasks-btn');
+
+        // --- FUNCTIONS ---
+
+        const saveState = () => {
+            localStorage.setItem('northStarState', JSON.stringify(northStarState));
+            localStorage.setItem('streakData', JSON.stringify(streakData));
+        };
+
+        const loadState = () => {
+            const savedNorthStar = localStorage.getItem('northStarState');
+            if (savedNorthStar) {
+                northStarState = JSON.parse(savedNorthStar);
+            }
+            const savedStreak = localStorage.getItem('streakData');
+            if (savedStreak) {
+                streakData = JSON.parse(savedStreak);
+            }
+        };
+
+        const renderNorthStar = () => {
+            appHeader.classList.remove('hidden');
+            northStarContent.innerHTML = '';
+            northStarControls.innerHTML = '';
+
+            if (northStarState.isEditing) {
+                northStarContent.innerHTML = `
+                    <input type="text" id="north-star-header-input" class="north-star-input font-bold text-lg mb-2" value="${northStarState.header}">
+                    <textarea id="north-star-goal-input" class="north-star-input text-gray-600" rows="2">${northStarState.goal}</textarea>
+                `;
+                northStarControls.innerHTML = `
+                    <button id="save-north-star-btn" class="north-star-btn">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </button>
+                `;
+                document.getElementById('save-north-star-btn').addEventListener('click', handleSaveNorthStar);
+            } else {
+                northStarContent.innerHTML = `
+                    <h2 class="text-lg font-bold text-indigo-800">${northStarState.header}</h2>
+                    <p class="text-gray-600">${northStarState.goal}</p>
+                `;
+                if (!northStarState.isLocked) {
+                     northStarControls.innerHTML = `
+                        <button id="edit-north-star-btn" class="north-star-btn">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path></svg>
+                        </button>
+                        <button id="lock-north-star-btn" class="north-star-btn">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </button>
+                    `;
+                    document.getElementById('edit-north-star-btn').addEventListener('click', handleEditNorthStar);
+                    document.getElementById('lock-north-star-btn').addEventListener('click', handleLockNorthStar);
+                } else {
+                     northStarControls.innerHTML = `
+                        <button id="unlock-north-star-btn" class="north-star-btn">
+                            <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2V7a5 5 0 00-5-5zm0 9a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+                        </button>
+                     `;
+                     document.getElementById('unlock-north-star-btn').addEventListener('click', handleLockNorthStar);
+                }
+            }
+        };
+
+        const handleEditNorthStar = () => {
+            northStarState.isEditing = true;
+            renderNorthStar();
+        };
+
+        const handleSaveNorthStar = () => {
+            northStarState.header = document.getElementById('north-star-header-input').value;
+            northStarState.goal = document.getElementById('north-star-goal-input').value;
+            northStarState.isEditing = false;
+            saveState();
+            renderNorthStar();
+        };
+        
+        const handleInitialSetNorthStar = () => {
+            const headerInput = document.getElementById('initial-goal-header');
+            const goalInput = document.getElementById('initial-goal-content');
+            if (goalInput.value.trim() === '') {
+                alert('Please define your goal before continuing.');
+                return;
+            }
+            northStarState.header = headerInput.value;
+            northStarState.goal = goalInput.value;
+            saveState();
+            renderNorthStar();
+            resetAppForNewDay();
+        };
+
+        const handleLockNorthStar = () => {
+            northStarState.isLocked = !northStarState.isLocked;
+            saveState();
+            renderNorthStar();
+        };
+
+        const switchScreen = (screenName) => {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            
+            if(screenName === 'screen1') {
+                northStarControls.style.display = 'flex';
+            } else {
+                northStarControls.style.display = 'none';
+                if(northStarState.isEditing) { // Auto-save if user moves on
+                    handleSaveNorthStar();
+                }
+            }
+
+            setTimeout(() => {
+                screens[screenName].classList.remove('hidden');
+            }, 50); 
+        };
+
+        const updateSortButtonState = () => {
+            const hasTasks = Array.from(document.querySelectorAll('.task-input')).some(input => input.value.trim() !== '');
+            sortDayBtn.classList.toggle('disabled', !hasTasks);
+        };
+
+        const createNewTaskInput = (isFirst = false) => {
+            const taskItems = taskListContainer.querySelectorAll('.task-item');
+            const newIndex = taskItems.length + 1;
+
+            const taskItem = document.createElement('div');
+            taskItem.className = 'task-item flex items-center space-x-3';
+            taskItem.innerHTML = `
+                <span class="text-gray-400 font-bold text-lg w-6 text-right">${newIndex}.</span>
+                <div class="task-input-container flex-grow">
+                    <input type="text" class="task-input" placeholder="Type a task and press Enter...">
+                </div>
+            `;
+            taskListContainer.appendChild(taskItem);
+
+            const input = taskItem.querySelector('input');
+            if (isFirst) {
+                input.focus();
+            }
+
+            input.addEventListener('keydown', handleTaskInputKeydown);
+            input.addEventListener('input', updateSortButtonState);
+            input.addEventListener('blur', cleanupEmptyTasks);
+        };
+
+        const handleTaskInputKeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const currentInput = e.target;
+                const allInputs = Array.from(document.querySelectorAll('.task-input'));
+                const currentIndex = allInputs.indexOf(currentInput);
+
+                if (currentInput.value.trim() !== '' && currentIndex === allInputs.length - 1) {
+                    createNewTaskInput();
+                }
+                
+                const newInputs = document.querySelectorAll('.task-input');
+                if (newInputs[currentIndex + 1]) {
+                    newInputs[currentIndex + 1].focus();
+                }
+            } else if (e.key === 'Backspace' && e.target.value === '') {
+                 cleanupEmptyTasks();
+            }
+        };
+
+        const cleanupEmptyTasks = () => {
+            const taskItems = document.querySelectorAll('.task-item');
+            taskItems.forEach((item, index) => {
+                const input = item.querySelector('input');
+                if (taskItems.length > 1 && input.value.trim() === '' && index !== taskItems.length - 1) {
+                    item.remove();
+                }
+            });
+            renumberTasks();
+            updateSortButtonState();
+        };
+
+        const renumberTasks = () => {
+            const taskItems = document.querySelectorAll('.task-item');
+            taskItems.forEach((item, index) => {
+                item.querySelector('span').textContent = `${index + 1}.`;
+            });
+        };
+
+        const startSorting = () => {
+            tasks = Array.from(document.querySelectorAll('.task-input'))
+                .map(input => input.value.trim())
+                .filter(task => task !== '');
+            
+            if (tasks.length === 0) return;
+
+            currentTaskIndex = 0;
+            signalTasks = [];
+            noiseTasks = [];
+            isLocked = false;
+            
+            setupWizardScreen();
+            switchScreen('screen2');
+        };
+
+        const setupWizardScreen = () => {
+            if (currentTaskIndex >= tasks.length) {
+                if (signalTasks.length === 0 && noiseTasks.length > 0) {
+                    zeroSignalModal.classList.remove('hidden');
+                } else {
+                    displaySortedLists();
+                }
+                return;
+            }
+            progressBanner.textContent = `TASK ${currentTaskIndex + 1} / ${tasks.length}`;
+            currentTaskText.textContent = tasks[currentTaskIndex];
+            
+            const checkboxContainer = wizardCard.querySelector('.space-y-4');
+            checkboxContainer.innerHTML = '';
+            wizardQuestions.forEach((q, i) => {
+                const label = document.createElement('label');
+                label.className = 'wizard-checkbox-label';
+                label.innerHTML = `
+                    <input type="checkbox" class="wizard-checkbox">
+                    <span>${q}</span>
+                `;
+                checkboxContainer.appendChild(label);
+                label.querySelector('input').addEventListener('change', () => {
+                    label.classList.toggle('checked', label.querySelector('input').checked);
+                    updateCategorizeButtonState();
+                });
+            });
+
+            updateCategorizeButtonState();
+        };
+
+        const updateCategorizeButtonState = () => {
+            const checkedCount = wizardCard.querySelectorAll('.wizard-checkbox:checked').length;
+            if (checkedCount >= 3) {
+                categorizeBtn.textContent = '✓ Mark as SIGNAL';
+                categorizeBtn.className = 'btn-primary w-full md:w-auto';
+                categorizeBtn.style.backgroundImage = 'linear-gradient(to right, #22c55e, #10b981)';
+                categorizeBtn.style.borderColor = '#047857';
+            } else {
+                categorizeBtn.textContent = '✘ Mark as NOISE';
+                categorizeBtn.className = 'btn-primary w-full md:w-auto';
+                categorizeBtn.style.backgroundImage = 'linear-gradient(to right, #ef4444, #f97316)';
+                categorizeBtn.style.borderColor = '#b91c1c';
+            }
+        };
+        
+        const categorizeCurrentTask = () => {
+            const checkedCount = wizardCard.querySelectorAll('.wizard-checkbox:checked').length;
+            const currentTask = { id: Date.now(), text: tasks[currentTaskIndex], completed: false, duration: 30 };
+
+            if (checkedCount >= 3) {
+                signalTasks.push(currentTask);
+            } else {
+                noiseTasks.push(currentTask);
+            }
+
+            currentTaskIndex++;
+            setupWizardScreen();
+        };
+
+        const displaySortedLists = () => {
+            signalListContainer.innerHTML = '';
+            noiseListContainer.innerHTML = '';
+            
+            screen3Header.textContent = "Your Day is Sorted.";
+            screen3Subheader.textContent = "Time to lock in and execute.";
+
+            signalTasks.forEach((task) => {
+                const taskEl = document.createElement('div');
+                taskEl.className = 'flex items-center justify-between p-3 bg-slate-100 rounded-xl draggable-signal';
+                taskEl.setAttribute('draggable', true);
+                taskEl.dataset.id = task.id;
+
+                taskEl.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="signal-task-${task.id}" class="signal-checkbox wizard-checkbox" disabled>
+                        <label for="signal-task-${task.id}" class="text-gray-800 font-medium cursor-pointer">${task.text}</label>
+                    </div>
+                    <div class="duration-chip hidden" data-id="${task.id}">${task.duration} min</div>
+                `;
+                signalListContainer.appendChild(taskEl);
+            });
+            
+            noiseTasks.forEach((task) => {
+                const taskEl = document.createElement('div');
+                taskEl.className = 'flex items-center space-x-3 p-3 bg-slate-100 rounded-xl editable-noise';
+                taskEl.innerHTML = `
+                    <input type="text" value="${task.text}" class="noise-input task-input text-gray-500 line-through p-0">
+                    <button class="delegate-noise-btn text-gray-400 hover:text-indigo-500" data-id="${task.id}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </button>
+                `;
+                noiseListContainer.appendChild(taskEl);
+            });
+
+            updateSignalPercentage();
+            signalWarning.classList.toggle('hidden', signalTasks.length <= 5);
+            lockSignalBtn.classList.toggle('hidden', signalTasks.length === 0);
+            integrationButtons.classList.add('hidden');
+            finishDayBtn.classList.add('hidden');
+
+            switchScreen('screen3');
+        };
+        
+        const updateSignalPercentage = () => {
+            if (signalTasks.length === 0) {
+                signalProgressBar.style.width = '0%';
+                signalPercentage.textContent = '0%';
+                return;
+            }
+            const completedCount = signalTasks.filter(t => t.completed).length;
+            const percentage = Math.round((completedCount / signalTasks.length) * 100);
+            signalProgressBar.style.width = `${percentage}%`;
+            signalPercentage.textContent = `${percentage}%`;
+            
+            if (isLocked && completedCount === signalTasks.length && signalTasks.length > 0) {
+                finishDayBtn.classList.remove('hidden');
+            } else {
+                finishDayBtn.classList.add('hidden');
+            }
+        };
+
+        const lockSignal = () => {
+            isLocked = true;
+            lockSignalBtn.classList.add('hidden');
+            integrationButtons.classList.remove('hidden');
+
+            screen3Header.textContent = "Signal Locked.";
+            screen3Subheader.textContent = "No more thinking — just execution.";
+
+            document.querySelectorAll('.signal-checkbox').forEach(cb => cb.disabled = false);
+            document.querySelectorAll('.draggable-signal').forEach(el => el.setAttribute('draggable', false));
+            document.querySelectorAll('.duration-chip').forEach(el => el.classList.remove('hidden'));
+            document.querySelectorAll('.noise-input').forEach(input => input.disabled = true);
+            document.querySelectorAll('.delegate-noise-btn').forEach(btn => btn.classList.add('hidden'));
+            updateSignalPercentage(); 
+        };
+
+        const showRecapScreen = () => {
+             const today = new Date().toDateString();
+             const yesterday = new Date(Date.now() - 864e5).toDateString();
+             const allSignalCompleted = signalTasks.length > 0 && signalTasks.every(t => t.completed);
+
+             if (allSignalCompleted && streakData.lastCompletedDate !== today) {
+                 if (streakData.lastCompletedDate === yesterday) {
+                     streakData.count++;
+                 } else {
+                     streakData.count = 1;
+                 }
+                 streakData.lastCompletedDate = today;
+                 saveState();
+             }
+             recapStreakCount.textContent = `${streakData.count} Day${streakData.count === 1 ? '' : 's'}`;
+
+             const completedSignalCount = signalTasks.filter(t => t.completed).length;
+             recapSignalCompleted.textContent = `${completedSignalCount}/${signalTasks.length}`;
+             
+             recapNoiseListContainer.innerHTML = '';
+             noiseTasks.forEach((task) => {
+                 const noiseItem = document.createElement('label');
+                 noiseItem.className = 'flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer border border-gray-200';
+                 noiseItem.innerHTML = `
+                    <input type="checkbox" class="recap-noise-checkbox wizard-checkbox" data-id="${task.id}">
+                    <span class="text-gray-600">${task.text}</span>
+                 `;
+                 recapNoiseListContainer.appendChild(noiseItem);
+             });
+             updateRecapNoiseCount();
+             switchScreen('screen4');
+        };
+        
+        const updateRecapNoiseCount = () => {
+            const pulledInCount = document.querySelectorAll('.recap-noise-checkbox:checked').length;
+            recapNoiseCount.textContent = pulledInCount;
+        };
+        
+        const resetAppForNewDay = () => {
+            tasks = [];
+            signalTasks = [];
+            noiseTasks = [];
+            currentTaskIndex = 0;
+            isLocked = false;
+            
+            taskListContainer.innerHTML = '';
+            createNewTaskInput(true);
+            updateSortButtonState();
+            
+            document.querySelector('#distraction-recap').value = '';
+            document.querySelectorAll('input[name="change-signals"]').forEach(rb => rb.checked = false);
+            
+            switchScreen('screen1');
+        };
+
+        // --- EVENT LISTENERS ---
+        setNorthStarBtn.addEventListener('click', handleInitialSetNorthStar);
+        sortDayBtn.addEventListener('click', () => {
+            if (!sortDayBtn.classList.contains('disabled')) {
+                startSorting();
+            }
+        });
+
+        categorizeBtn.addEventListener('click', categorizeCurrentTask);
+        lockSignalBtn.addEventListener('click', lockSignal);
+        addToCalendarBtn.addEventListener('click', () => alert('Calendar Integration Coming Soon!'));
+        addToNotionBtn.addEventListener('click', () => notionModal.classList.remove('hidden'));
+        document.querySelectorAll('.close-modal-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                notionModal.classList.add('hidden');
+                delegateModal.classList.add('hidden');
+            });
+        });
+        rethinkTasksBtn.addEventListener('click', () => {
+            zeroSignalModal.classList.add('hidden');
+            resetAppForNewDay();
+        });
+        finishDayBtn.addEventListener('click', showRecapScreen);
+        startNewDayBtn.addEventListener('click', resetAppForNewDay);
+
+        signalListContainer.addEventListener('change', (e) => {
+            if (e.target.classList.contains('signal-checkbox')) {
+                const taskId = Number(e.target.id.replace('signal-task-', ''));
+                const task = signalTasks.find(t => t.id === taskId);
+                if (task) {
+                    task.completed = e.target.checked;
+                    e.target.closest('div.flex').querySelector('label').classList.toggle('line-through', e.target.checked);
+                    e.target.closest('.draggable-signal').classList.toggle('opacity-60', e.target.checked);
+                    updateSignalPercentage();
+                }
+            }
+        });
+
+        signalListContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('duration-chip')) {
+                const chip = e.target;
+                const taskId = Number(chip.dataset.id);
+                const task = signalTasks.find(t => t.id === taskId);
+                
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'duration-input';
+                input.value = task.duration;
+                
+                chip.replaceWith(input);
+                input.focus();
+                
+                const saveDuration = () => {
+                    const newDuration = parseInt(input.value) || 30;
+                    task.duration = newDuration;
+                    chip.textContent = `${newDuration} min`;
+                    input.replaceWith(chip);
+                };
+                
+                input.addEventListener('blur', saveDuration);
+                input.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter') {
+                        saveDuration();
+                    }
+                });
+            }
+        });
+
+        let draggedItem = null;
+        signalListContainer.addEventListener('dragstart', (e) => {
+            if (isLocked) return;
+            draggedItem = e.target;
+            setTimeout(() => {
+                e.target.classList.add('dragging');
+            }, 0);
+        });
+
+        signalListContainer.addEventListener('dragend', (e) => {
+            if (isLocked) return;
+            setTimeout(() => {
+                draggedItem.classList.remove('dragging');
+                draggedItem = null;
+            }, 0);
+        });
+
+        signalListContainer.addEventListener('dragover', (e) => {
+            if (isLocked) return;
+            e.preventDefault();
+            const afterElement = getDragAfterElement(signalListContainer, e.clientY);
+            const currentlyDragged = document.querySelector('.dragging');
+            if (afterElement == null) {
+                signalListContainer.appendChild(currentlyDragged);
+            } else {
+                signalListContainer.insertBefore(currentlyDragged, afterElement);
+            }
+        });
+        
+        signalListContainer.addEventListener('drop', (e) => {
+             if (isLocked) return;
+             e.preventDefault();
+             const newOrder = Array.from(signalListContainer.querySelectorAll('.draggable-signal')).map(el => Number(el.dataset.id));
+             signalTasks.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+        });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.draggable-signal:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+        
+        noiseListContainer.addEventListener('click', (e) => {
+            if (e.target.closest('.delegate-noise-btn')) {
+                delegateModal.classList.remove('hidden');
+            }
+        });
+        
+        noiseListContainer.addEventListener('change', (e) => {
+            if (e.target.classList.contains('noise-input')) {
+                const inputEl = e.target;
+                const taskId = Number(inputEl.closest('.editable-noise').dataset.id);
+                const task = noiseTasks.find(t => t.id === taskId);
+                if(task) task.text = inputEl.value;
+            }
+        });
+        
+        recapNoiseListContainer.addEventListener('change', (e) => {
+            if (e.target.classList.contains('recap-noise-checkbox')) {
+                updateRecapNoiseCount();
+            }
+        });
+
+        // --- INITIALIZATION ---
+        loadState();
+        if (!northStarState.goal) {
+            switchScreen('screen0');
+        } else {
+            renderNorthStar();
+            resetAppForNewDay();
+        }
+    });
+    </script>
+</body>
+</html>
